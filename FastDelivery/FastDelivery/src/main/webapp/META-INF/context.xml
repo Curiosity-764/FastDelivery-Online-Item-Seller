@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+    <!-- SQL Server Connection Pool for FastDelivery -->
+    <Resource name="jdbc/ShopDB"
+              auth="Container"
+              type="javax.sql.DataSource"
+              driverClassName="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+              url="jdbc:sqlserver://localhost\SQLEXPRESS:1433;databaseName=fast_delivery_db;encrypt=false;trustServerCertificate=true"
+              username="shop_user"
+              password="33521412"
+              maxTotal="50"
+              maxIdle="20"
+              maxWaitMillis="10000"
+              minIdle="5"
+              initialSize="5"
+              validationQuery="SELECT 1"
+              testOnBorrow="true"
+              testWhileIdle="true"
+              timeBetweenEvictionRunsMillis="30000"
+              minEvictableIdleTimeMillis="60000"
+              removeAbandoned="true"
+              removeAbandonedTimeout="60"
+              logAbandoned="false"
+              defaultAutoCommit="true"/>
+</Context>
