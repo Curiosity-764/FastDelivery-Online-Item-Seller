@@ -1,13 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ page import="model.Cart" %>
-<%
-    Cart cart = (Cart) session.getAttribute("cart");
-    if (cart == null) {
-        cart = new Cart();
-        session.setAttribute("cart", cart);
-    }
-%>
+<c:set var="cart" value="${sessionScope.cart}" />
+<c:if test="${empty cart}">
+    <% 
+        // Tạo cart mới nếu chưa có
+        session.setAttribute("cart", new model.Cart());
+    %>
+    <c:set var="cart" value="${sessionScope.cart}" />
+</c:if>
 <!DOCTYPE html>
 <html>
 <head>
@@ -291,4 +292,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
