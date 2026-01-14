@@ -49,7 +49,7 @@ public class AuthenticationFilter implements Filter {
         boolean loggedIn = session != null && session.getAttribute("user") != null;
 
         
-        // If it's homepage, ALWAYS allow
+      
         if (isHomePage) {
             System.out.println("  Allowing homepage access");
             chain.doFilter(request, response);
@@ -62,17 +62,14 @@ public class AuthenticationFilter implements Filter {
             return;
         }
         
-        // If it's login/register page and user is logged in, redirect to product page
         if ((isLoginPage || isRegisterPage) && loggedIn) {
             response.sendRedirect(contextPath + "/product");
             return;
         }
         
-        // If user is trying to access protected page without login
         if (!loggedIn && (isProductPage || isCartPage || isCheckoutPage || isOrdersPage || isProfilePage)) {
             System.out.println("   → Redirecting to login (protected page accessed)");
             
-            // Save the requested URL to redirect back after login
             if (session == null) {
                 session = request.getSession(true);
             }
@@ -82,7 +79,7 @@ public class AuthenticationFilter implements Filter {
             return;
         }
         
-        // Allow the request to proceed
         chain.doFilter(request, response);
     }
+
 }
