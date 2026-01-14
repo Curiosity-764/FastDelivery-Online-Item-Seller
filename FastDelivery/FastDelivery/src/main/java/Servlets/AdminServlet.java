@@ -334,31 +334,54 @@ public class AdminServlet extends HttpServlet {
     }
     
     private void handleOrderAction(HttpServletRequest request, HttpServletResponse response, String action)
-            throws IOException {
+            throws IOException, ServletException {
         
         HttpSession session = request.getSession();
-        int orderId = Integer.parseInt(request.getParameter("orderId"));
+        int orderId;
+        String orderIdParam = request.getParameter("orderId");
+        
+        if (orderIdParam == null || orderIdParam.trim().isEmpty()) {
+            session.setAttribute(Constants.SESSION_FLASH_ERROR, "Order ID is required");
+            response.sendRedirect(request.getContextPath() + "/admin/orders");
+            return;
+        }
+        
+        try {
+            orderId = Integer.parseInt(orderIdParam);
+        } catch (NumberFormatException e) {
+            session.setAttribute(Constants.SESSION_FLASH_ERROR, "Invalid order ID format");
+            response.sendRedirect(request.getContextPath() + "/admin/orders");
+            return;
+        }
         
         boolean success = false;
         String message = "";
         
         if ("updateStatus".equals(action)) {
             String newStatus = request.getParameter("status");
+            if (newStatus == null || newStatus.trim().isEmpty()) {
+                session.setAttribute(Constants.SESSION_FLASH_ERROR, "Status is required");
+                response.sendRedirect(request.getContextPath() + "/admin/orders");
+                return;
+            }
             success = orderDAO.updateOrderStatus(orderId, newStatus);
             message = "Order status updated to " + newStatus + ".";
         } else if ("updatePaymentStatus".equals(action)) {
             String paymentStatus = request.getParameter("paymentStatus");
+            if (paymentStatus == null || paymentStatus.trim().isEmpty()) {
+                session.setAttribute(Constants.SESSION_FLASH_ERROR, "Payment status is required");
+                response.sendRedirect(request.getContextPath() + "/admin/orders");
+                return;
+            }
             success = orderDAO.updatePaymentStatus(orderId, paymentStatus);
             message = "Payment status updated to " + paymentStatus + ".";
-        }else if ("delete".equals(action)) {
-          orderId = Integer.parseInt(request.getParameter("orderId"));
-            success = false;
-            
+        } else if ("delete".equals(action)) {
             try (Connection conn = DBConnection.getConnection();
                  PreparedStatement ps = conn.prepareStatement("DELETE FROM orders WHERE order_id = ?")) {
                 
                 ps.setInt(1, orderId);
-                success = ps.executeUpdate() > 0;
+                int rowsAffected = ps.executeUpdate();
+                success = rowsAffected > 0;
                 
                 if (success) {
                     // Also delete order items
@@ -366,24 +389,30 @@ public class AdminServlet extends HttpServlet {
                         ps2.setInt(1, orderId);
                         ps2.executeUpdate();
                     }
-                    
                     message = "Order deleted successfully.";
                 } else {
-                    message = "Failed to delete order.";
+                    message = "Failed to delete order. Order may not exist.";
                 }
                 
             } catch (SQLException e) {
+                e.printStackTrace();
                 message = "Database error: " + e.getMessage();
             }
+        }
         
-        
+   
         if (success) {
             session.setAttribute(Constants.SESSION_FLASH_MESSAGE, message);
         } else {
-            session.setAttribute(Constants.SESSION_FLASH_ERROR, "Failed to update order.");
+            session.setAttribute(Constants.SESSION_FLASH_ERROR, "Failed to update order. " + message);
         }
         
-        response.sendRedirect(request.getContextPath() + "/admin/orders");
+    
+        String redirectTo = request.getParameter("redirectTo");
+        if ("orderView".equals(redirectTo)) {
+                   response.sendRedirect(request.getContextPath() + "/orders/view?id=" + orderId);
+        } else {
+            response.sendRedirect(request.getContextPath() + "/admin/orders");
+        }
     }
-}
 }
